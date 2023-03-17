@@ -10,6 +10,10 @@ use App\Services\AddressAPIService;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Message;
 use FOS\RestBundle\Controller\Annotations\View;
+use App\Entity\User;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Nelmio\ApiDocBundle\Annotation\Security;
 
 #[Route('/api')]
 class ApiController extends AbstractController
@@ -39,18 +43,6 @@ class ApiController extends AbstractController
         return $message;
     }
 
-    /**
-     * @swagger
-    * components:
-    *   schemas:
-    *     Address:
-    *       type: object
-    *       properties:
-    *         name:
-    *           type: string
-    *           description: Adress
-    *           example: LBordeaux
-     */
     #[View(serializerGroups: ["message_basic"])]
     #[Route('/messages', name: 'app_endpoint_message', methods: ['GET'])]
     public function endPointMessage(MessageRepository $messageRepository, Request $request){
@@ -66,5 +58,39 @@ class ApiController extends AbstractController
         return [
             "messages" => $data,
         ];
+    }
+
+    #[Route('/register', name: 'app_endpoint_register', methods: ['POST'])]
+    public function endPointRegister(Request $request, UserPasswordHasherInterface $userPasswordHasher){
+        $data = json_decode($request->getContent(), true);
+        $user = new User();
+        $user->setEmail($data["email"]);
+        $user->setPassword(
+            $userPasswordHasher->hashPassword(
+                $user,
+                $data["password"]
+            )
+        );
+        return $this->json($user);
+    }
+
+    #[Route('/login', name: 'app_endpoint_login', methods: ['POST'])]
+    public function endPointLogin(User $user){
+        $token = uniqid();
+        if($user->getToken() == null){
+            $user->setToken($token);
+        }
+        return $this->json($user);
+    }
+
+    #[IsGranted("ROLE_USER")]
+    #[Security(name: "Bearer")]
+    #[View(serializerGroups: ["message_basic"])]
+    #[Route('/message', name: 'app_endpoint_PubMessage', methods: ['POST'])]
+    public function endPointPubMessage(Request $request){
+        $data = json_decode($request->getContent(), true);
+        $message = new Message();
+        $message->setText($data['text']);
+        return $this->json($message);
     }
 }

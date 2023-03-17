@@ -38,6 +38,9 @@ class Message
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $date = null;
 
+    #[ORM\ManyToOne(inversedBy: 'messages')]
+    private ?User $user = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -106,5 +109,17 @@ class Message
     public function __construct()
     {
         $this->date = new \DateTime();
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
     }
 }
