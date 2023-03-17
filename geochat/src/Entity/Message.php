@@ -38,6 +38,7 @@ class Message
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $date = null;
 
+    #[Groups(["message_basic"])]
     #[ORM\ManyToOne(inversedBy: 'messages')]
     private ?User $user = null;
 

@@ -87,10 +87,11 @@ class ApiController extends AbstractController
     #[Security(name: "Bearer")]
     #[View(serializerGroups: ["message_basic"])]
     #[Route('/message', name: 'app_endpoint_PubMessage', methods: ['POST'])]
-    public function endPointPubMessage(Request $request){
+    public function endPointPubMessage(Request $request, User $user){
         $data = json_decode($request->getContent(), true);
         $message = new Message();
         $message->setText($data['text']);
+        $message->setUser($user->getToken());
         return $this->json($message);
     }
 }
